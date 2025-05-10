@@ -1,34 +1,12 @@
 provider "aws" {
-  region = "us-east-1"
+  region = "us-west-2"  # Change to your desired region
 }
 
-# Get the default VPC
-data "aws_vpc" "default" {
-  default = true
-}
-
-# Get all subnets in the default VPC
-data "aws_subnets" "default" {
-  filter {
-    name   = "vpc-id"
-    values = [data.aws_vpc.default.id]
-  }
-}
-
-resource "aws_instance" "web" {
-  ami           = "ami-084568db4383264d4"
-  instance_type = "t2.micro"
-  subnet_id     = data.aws_subnets.default.ids[0]
-
-  user_data = <<EOF
-#!/bin/bash
-yum update -y
-yum install -y httpd
-systemctl start httpd
-systemctl enable httpd
-EOF
+resource "aws_instance" "example" {
+  ami           = "ami-0c55b159cbfafe1f0"  # Replace with a valid AMI ID for your region
+  instance_type = "t2.micro"  # Choose your instance type
 
   tags = {
-    Name = "Web-Server"
+    Name = "Hello AWS"
   }
 }

@@ -1,19 +1,10 @@
 provider "aws" {
-  region     = "ap-south-1"
-  access_key = var.aws_access_key
-  secret_key = var.aws_secret_key
+  region = "ap-south-1"
 }
 
-# Get Default VPC
-data "aws_vpc" "default" {
-  default = true
-}
-
-# Security Group: My_EC2-SG
 resource "aws_security_group" "ec2_sg" {
   name        = "My_EC2-SG"
-  description = "Allow SSH and HTTP"
-  vpc_id      = data.aws_vpc.default.id
+  description = "Allow SSH and HTTP traffic"
 
   ingress {
     from_port   = 22
@@ -41,8 +32,21 @@ resource "aws_security_group" "ec2_sg" {
   }
 }
 
-# EC2 Instance with Apache Installed
 resource "aws_instance" "my_ec2" {
   ami                    = "ami-0e35ddab05955cf57"
   instance_type          = "t2.micro"
-  vpc
+  vpc_security_group_ids = [aws_security_group.ec2_sg.id]
+
+  user_data = <<-EOF
+              #!/bin/bash
+              sudo yum update -y
+              sudo yum install -y httpd
+              sudo systemctl enable httpd
+              sudo systemctl start httpd
+              echo "Apache Server is running on EC2" > /var/www/html/index.html
+              EOF
+
+  tags = {
+    Name = "Jenkins-EC2"
+  }
+}

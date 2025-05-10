@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        TF_VAR_region = "ap-south-1"
+        TF_VAR_region = "us-east-1"
     }
     stages {
         stage('Checkout') {
@@ -12,7 +12,7 @@ pipeline {
 
         stage('Terraform Init/Plan/Apply') {
             steps {
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'AWS-Root']]) {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'AWS-Cred']]) {
                     bat 'terraform init'
                     bat 'terraform plan'
                     bat 'terraform apply -auto-approve'

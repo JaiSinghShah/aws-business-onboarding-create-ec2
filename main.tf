@@ -2,10 +2,14 @@ provider "aws" {
   region = "ap-south-1"
 }
 
+resource "aws_key_pair" "generated_key" {
+  key_name   = "tf-generated-key"
+  public_key = file("~/.ssh/id_rsa.pub") # Or generate a new one
+}
+
 resource "aws_security_group" "web_sg" {
   name        = "web-sg"
   description = "Allow SSH and HTTP"
-  vpc_id      = data.aws_vpc.default.id
 
   ingress {
     from_port   = 22
@@ -27,20 +31,12 @@ resource "aws_security_group" "web_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-
-  tags = {
-    Name = "web-sg"
-  }
-}
-
-data "aws_vpc" "default" {
-  default = true
 }
 
 resource "aws_instance" "web_server" {
   ami           = "ami-0e35ddab05955cf57"
   instance_type = "t2.micro"
-  key_name      = "your-key-name" # Replace with your actual key pair name
+  key_name      = aws_key_pair.generated_key.key_name
   security_groups = [aws_security_group.web_sg.name]
 
   user_data = <<-EOF
@@ -49,9 +45,9 @@ resource "aws_instance" "web_server" {
               sudo apt install apache2 -y
               sudo systemctl enable apache2
               sudo systemctl start apache2
-              EOF
+            EOF
 
   tags = {
-    Name = "WebServer"
+    Name = "TerraformWebServer"
   }
 }

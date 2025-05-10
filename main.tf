@@ -1,21 +1,21 @@
 provider "aws" {
-  region = "ap-south-1"
+  region = var.aws_region
 }
 
-resource "aws_security_group" "ec2_sg" {
+resource "aws_security_group" "my_ec2_sg" {
   name        = "My_EC2-SG"
-  description = "Allow SSH and HTTP traffic"
+  description = "Allow HTTP and SSH access"
 
   ingress {
-    from_port   = 22
-    to_port     = 22
+    from_port   = 80
+    to_port     = 80
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
-    from_port   = 80
-    to_port     = 80
+    from_port   = 22
+    to_port     = 22
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -26,27 +26,22 @@ resource "aws_security_group" "ec2_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-
-  tags = {
-    Name = "My_EC2-SG"
-  }
 }
 
 resource "aws_instance" "my_ec2" {
-  ami                    = "ami-062f0cc54dbfd8ef1"
-  instance_type          = "t2.micro"
-  vpc_security_group_ids = [aws_security_group.ec2_sg.id]
+  ami           = "ami-0e35ddab05955cf57"  # Replace with your AMI ID
+  instance_type = var.instance_type
+  security_groups = [aws_security_group.my_ec2_sg.name]
+  
+  tags = {
+    Name = "MyEC2Instance"
+  }
 
   user_data = <<-EOF
               #!/bin/bash
-              sudo yum update -y
-              sudo yum install -y httpd
-              sudo systemctl enable httpd
-              sudo systemctl start httpd
-              echo "Apache Server is running on EC2" > /var/www/html/index.html
+              yum update -y
+              yum install -y httpd
+              systemctl enable httpd
+              systemctl start httpd
               EOF
-
-  tags = {
-    Name = "Jenkins-EC2"
-  }
 }

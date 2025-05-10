@@ -1,12 +1,24 @@
-provider "aws" {
-  region = "us-west-2"  # Change to your desired region
+data "aws_ami" "ubuntu" {
+  most_recent = true
+
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  owners = ["099720109477"] # Canonical
 }
 
-resource "aws_instance" "example" {
-  ami           = "ami-0c55b159cbfafe1f0"  # Replace with a valid AMI ID for your region
-  instance_type = "t2.micro"  # Choose your instance type
+resource "aws_instance" "web" {
+  ami           = data.aws_ami.ubuntu.id
+  instance_type = "t3.micro"
 
   tags = {
-    Name = "Hello AWS"
+    Name = "HelloWorld"
   }
 }

@@ -1,24 +1,64 @@
 provider "aws" {
-  region = "ap-south-1"  # Set region to ap-south-1
+  region = "ap-south-1"
 }
 
-# Create the EC2 instance without an explicit Security Group (defaults to default security group)
-resource "aws_instance" "my_ec2" {
-  ami           = "ami-06b6e5225d1db5f46"  # Your specified AMI ID
-  instance_type = "t2.micro"  # Adjust the instance type as necessary
+# Fetch latest Ubuntu 20.04 LTS AMI
+data "aws_ami" "ubuntu" {
+  most_recent = true
 
-  # No explicit security group defined, using the default security group
-  # If needed, add custom security groups here
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
+# Security Group allowing SSH and HTTP access
+resource "aws_security_group" "web_sg" {
+  name        = "web-sg"
+  description = "Allow SSH and HTTP"
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+# EC2 Instance
+resource "aws_instance" "web" {
+  ami           = data.aws_ami.ubuntu.id
+  instance_type = "t2.micro"
+  vpc_security_group_ids = [aws_security_group.web_sg.id]
 
   tags = {
-    Name = "MyEC2Instance"
+    Name = "Development"
   }
 
   user_data = <<-EOF
               #!/bin/bash
-              yum update -y
-              yum install -y httpd
-              systemctl enable httpd
-              systemctl start httpd
+              apt update -y
+              apt install -y apache2
+              systemctl enable apache2
+              systemctl start apache2
               EOF
 }

@@ -2,13 +2,17 @@ provider "aws" {
   region = "ap-south-1"
 }
 
-# Use the default VPC and fetch a default subnet
+# Get the default VPC
 data "aws_vpc" "default" {
   default = true
 }
 
-data "aws_subnet_ids" "default" {
-  vpc_id = data.aws_vpc.default.id
+# Get all subnets in the default VPC
+data "aws_subnets" "default" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
 }
 
 resource "aws_security_group" "web_sg" {
@@ -36,7 +40,7 @@ resource "aws_security_group" "web_sg" {
 resource "aws_instance" "web" {
   ami                         = "ami-002f6e91abff6eb96"
   instance_type               = "t2.micro"
-  subnet_id                   = data.aws_subnet_ids.default.ids[0]
+  subnet_id                   = data.aws_subnets.default.ids[0]
   vpc_security_group_ids      = [aws_security_group.web_sg.id]
 
   user_data = <<EOF

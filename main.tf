@@ -1,39 +1,57 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
-  }
-
-  required_version = ">= 1.3.0"
-}
-
 provider "aws" {
-  region = "us-east-1" # Change this to your preferred region
+  region = "ap-south-1"
 }
 
-data "aws_ami" "ubuntu" {
-  most_recent = true
+resource "aws_security_group" "web_sg" {
+  name        = "web-sg"
+  description = "Allow SSH and HTTP"
+  vpc_id      = data.aws_vpc.default.id
 
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
-  owners = ["099720109477"] # Canonical
-}
-
-resource "aws_instance" "web" {
-  ami           = data.aws_ami.ubuntu.id
-  instance_type = "t2.micro"
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
   tags = {
-    Name = "HelloWorld"
+    Name = "web-sg"
+  }
+}
+
+data "aws_vpc" "default" {
+  default = true
+}
+
+resource "aws_instance" "web_server" {
+  ami           = "ami-0e35ddab05955cf57"
+  instance_type = "t2.micro"
+  key_name      = "your-key-name" # Replace with your actual key pair name
+  security_groups = [aws_security_group.web_sg.name]
+
+  user_data = <<-EOF
+              #!/bin/bash
+              sudo apt update -y
+              sudo apt install apache2 -y
+              sudo systemctl enable apache2
+              sudo systemctl start apache2
+              EOF
+
+  tags = {
+    Name = "WebServer"
   }
 }

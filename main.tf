@@ -4,14 +4,15 @@ provider "aws" {
 
 resource "aws_key_pair" "generated_key" {
   key_name   = "tf-generated-key"
-  public_key = file("~/.ssh/id_rsa.pub") # Or generate a new one
+  public_key = file("C:/Users/JaiShah/.ssh/id_rsa.pub")
 }
 
 resource "aws_security_group" "web_sg" {
-  name        = "web-sg"
+  name        = "web_sg"
   description = "Allow SSH and HTTP"
 
   ingress {
+    description = "SSH"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
@@ -19,6 +20,7 @@ resource "aws_security_group" "web_sg" {
   }
 
   ingress {
+    description = "HTTP"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
@@ -48,6 +50,6 @@ resource "aws_instance" "web_server" {
             EOF
 
   tags = {
-    Name = "TerraformWebServer"
+    Name = "WebServer"
   }
 }

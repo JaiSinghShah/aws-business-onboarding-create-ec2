@@ -19,5 +19,13 @@ pipeline {
                 }
             }
         }
+
+        stage('Terraform Destroy') {
+            steps {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'AWS-Cred']]) {
+                    bat 'terraform destroy -auto-approve'
+                }
+            }
+        }
     }
 }

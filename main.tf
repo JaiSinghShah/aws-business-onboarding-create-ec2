@@ -2,9 +2,19 @@ provider "aws" {
   region = "ap-south-1"
 }
 
+# Use the default VPC and fetch a default subnet
+data "aws_vpc" "default" {
+  default = true
+}
+
+data "aws_subnet_ids" "default" {
+  vpc_id = data.aws_vpc.default.id
+}
+
 resource "aws_security_group" "web_sg" {
   name        = "Web-SG"
   description = "Allow HTTP traffic"
+  vpc_id      = data.aws_vpc.default.id
 
   ingress {
     description = "Allow HTTP inbound"
@@ -24,8 +34,9 @@ resource "aws_security_group" "web_sg" {
 }
 
 resource "aws_instance" "web" {
-  ami                         = "ami-002f6e91abff6eb96"  # Amazon Linux 2 (ap-south-1)
+  ami                         = "ami-002f6e91abff6eb96"
   instance_type               = "t2.micro"
+  subnet_id                   = data.aws_subnet_ids.default.ids[0]
   vpc_security_group_ids      = [aws_security_group.web_sg.id]
 
   user_data = <<EOF

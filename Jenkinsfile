@@ -12,7 +12,7 @@ pipeline {
 
         stage('Terraform Init/Plan/Apply') {
             steps {
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'AWS-Cred']]) {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'AWS-Root']]) {
                     bat 'terraform init'
                     bat 'terraform plan'
                     bat 'terraform apply -auto-approve'

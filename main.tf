@@ -1,7 +1,8 @@
 provider "aws" {
-  region = var.aws_region
+  region = "ap-south-1"  # Set region to ap-south-1
 }
 
+# Create the Security Group
 resource "aws_security_group" "my_ec2_sg" {
   name        = "My_EC2-SG"
   description = "Allow HTTP and SSH access"
@@ -28,11 +29,13 @@ resource "aws_security_group" "my_ec2_sg" {
   }
 }
 
+# Create the EC2 instance
 resource "aws_instance" "my_ec2" {
-  ami           = "ami-06b6e5225d1db5f46"  # Replace with your AMI ID
-  instance_type = var.instance_type
+  ami           = "ami-06b6e5225d1db5f46"  # Your specified AMI ID
+  instance_type = "t2.micro"  # Adjust the instance type as necessary
+
   security_groups = [aws_security_group.my_ec2_sg.name]
-  
+
   tags = {
     Name = "MyEC2Instance"
   }
